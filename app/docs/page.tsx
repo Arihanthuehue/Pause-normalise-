@@ -83,7 +83,7 @@ export default function DocsPage() {
         color: '#3b4151',
         minHeight: '100vh', 
         fontFamily: 'sans-serif',
-        // @ts-expect-error
+        // @ts-expect-error -- custom CSS property not in type definitions
         '--background': '#ffffff',
         '--foreground': '#3b4151'
       }}
