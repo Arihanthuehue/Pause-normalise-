@@ -83,9 +83,9 @@ export default function DocsPage() {
         color: '#3b4151',
         minHeight: '100vh', 
         fontFamily: 'sans-serif',
-        // @ts-ignore
+        // @ts-expect-error
         '--background': '#ffffff',
-        // @ts-ignore
+        // @ts-expect-error
         '--foreground': '#3b4151'
       }}
     >
