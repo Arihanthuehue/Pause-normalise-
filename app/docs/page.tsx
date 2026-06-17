@@ -85,7 +85,6 @@ export default function DocsPage() {
         fontFamily: 'sans-serif',
         // @ts-expect-error
         '--background': '#ffffff',
-        // @ts-expect-error
         '--foreground': '#3b4151'
       }}
     >
