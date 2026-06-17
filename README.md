@@ -1,28 +1,29 @@
-# Pause Normalizer
+# Pause Normalizer (Next.js Version)
 
-A minimal full-stack web application that normalizes pauses in a speech audio file.
+A full-stack Next.js web application that normalizes pauses in speech audio files.
 
-## Requirements
+## Tech Stack
 
-1. **Python 3.7+**
-2. **FFmpeg**: `pydub` requires FFmpeg to decode and encode audio files (such as MP3, M4A, etc.).
-   - **Windows**: Install via Chocolatey (`choco install ffmpeg`), winget (`winget install Gygax.FFmpeg`), or download from [ffmpeg.org](https://ffmpeg.org/) and add it to your system PATH.
-   - **macOS**: `brew install ffmpeg`
-   - **Linux**: `sudo apt install ffmpeg`
+- **Frontend & Backend**: Next.js (App Router, TypeScript, React 19)
+- **Audio Processing**: `ffmpeg-static` (npm) to bundle the FFmpeg binary directly in the application (no system-wide FFmpeg installation required).
+- **Execution**: Spawns FFmpeg directly from Node.js route handlers.
 
-## Installation and Execution
+## Getting Started
 
-1. Install dependencies:
+1. **Install Dependencies**:
    ```bash
-   pip install -r requirements.txt
+   npm install
    ```
 
-2. Run the application:
+2. **Run the Development Server**:
    ```bash
-   python app.py
+   npm run dev
    ```
 
-3. Open your browser and navigate to:
-   ```
-   http://localhost:5000
-   ```
+3. **Open the Application**:
+   Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment Notes
+
+- **Important**: This application **requires a Node.js server runtime** (such as Render, Railway, or VPS). 
+- It **cannot** be deployed to serverless Edge runtimes or static hosting platforms (like Vercel serverless/Edge, Netlify, or GitHub Pages) because it relies on local filesystem storage (`uploads/`, `outputs/`, OS temp directory) and spawns FFmpeg as a local child process (`child_process.spawn`).

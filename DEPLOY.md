@@ -1,3 +1,0 @@
-# Deploying to Render via Docker
-
-To deploy this application to Render, push your repository to GitHub, log into the Render dashboard, and create a new **Web Service** connected to your repository. Render will automatically detect the `Dockerfile` in the root directory and use it to build and deploy the container. Make sure to select the **Free** instance type when configuring the service, and deploy the application. Note that on Render's Free tier, the web service will spin down (sleep) after 15 minutes of inactivity (causing a 50+ second cold start delay on the first subsequent request), and the container's storage is ephemeral, meaning any uploaded and processed audio files will be deleted whenever the service restarts or redeploys.

@@ -1,0 +1,261 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Pause Normalizer API",
+    "description": "API for uploading audio files, detecting silence/pauses (>150ms) using a Python subprocess, and normalising all pauses to match the duration of the shortest pause. Also includes an endpoint to securely stream uploaded and processed audio files.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current Host"
+    }
+  ],
+  "paths": {
+    "/api/process": {
+      "post": {
+        "summary": "Process Audio File",
+        "description": "Uploads an audio file, detects silences using Python pydub, and normalizes all qualifying pauses down to the duration of the shortest qualifying pause. If there are fewer than 2 qualifying pauses, normalization is skipped and the original file is returned.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The audio file to process. Supported formats: .mp3, .wav, .m4a"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "num_pauses": {
+                          "type": "integer",
+                          "description": "Number of pauses longer than 150ms detected in the audio.",
+                          "example": 3
+                        },
+                        "original_durations": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          },
+                          "description": "Original durations of each qualifying pause in milliseconds.",
+                          "example": [500, 300, 750]
+                        },
+                        "target_duration": {
+                          "type": "integer",
+                          "description": "The target duration (ms) all pauses were normalized to (minimum of the original durations, or 0 if skipped).",
+                          "example": 300
+                        },
+                        "skipped": {
+                          "type": "boolean",
+                          "description": "Indicates whether normalization was skipped because fewer than 2 pauses were detected.",
+                          "example": false
+                        }
+                      }
+                    },
+                    "original_url": {
+                      "type": "string",
+                      "description": "API URL to play/retrieve the original uploaded audio file.",
+                      "example": "/api/audio?filename=a1b2c3d4.mp3&type=uploads"
+                    },
+                    "processed_url": {
+                      "type": "string",
+                      "description": "API URL to play/retrieve the processed normalise audio file.",
+                      "example": "/api/audio?filename=a1b2c3d4_processed.mp3&type=outputs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (e.g. no file, invalid file extension)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unsupported file type. Only mp3, wav, and m4a are allowed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server processing error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Audio processing error: Python detection failed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audio": {
+      "get": {
+        "summary": "Stream Audio File",
+        "description": "Securely streams an uploaded (original) or output (processed) audio file from the server. Implements path traversal defense.",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "description": "The exact name of the file to retrieve.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a1b2c3d4.mp3"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "The category folder of the audio file.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "uploads",
+                "outputs"
+              ]
+            },
+            "example": "outputs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The audio file binary stream",
+            "headers": {
+              "Content-Type": {
+                "description": "The mime-type of the audio (e.g., audio/mpeg, audio/wav, or audio/x-m4a)",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "description": "The file size in bytes.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Disposition": {
+                "description": "Inline header to stream in-browser.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Accept-Ranges": {
+                "description": "Indicates byte range support for seeking.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "audio/mpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/wav": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/x-m4a": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid parameters"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "File not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error reading audio file"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
